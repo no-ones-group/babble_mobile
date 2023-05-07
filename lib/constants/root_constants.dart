@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 class RootConstants {
@@ -14,7 +15,7 @@ class RootConstants {
 
   double get extendedSidebarWidth =>
       isPlatformMobile ? Get.size.width - sidebarWidth : 300;
-  static bool get isPlatformMobile => Platform.isAndroid || Platform.isIOS;
+  static bool get isPlatformMobile => !kIsWeb;
 
   static bool get spaceVisible => !isPlatformMobile;
 

@@ -40,6 +40,7 @@ class MessageSpaceRoot extends StatelessWidget {
           ),
         ),
         floatingActionButton: FloatingActionButton(
+          heroTag: null,
           onPressed: () {
             var uuid = const Uuid().v4();
             _extendedSidebarController.selectedChat.value.messagesCollection

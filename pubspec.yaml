@@ -43,6 +43,7 @@ dependencies:
   badges:
   resizable_widget:
   firebase_messaging:
+  glass:
 
 
   # The following adds the Cupertino Icons font to your application.

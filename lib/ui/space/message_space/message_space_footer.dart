@@ -31,6 +31,7 @@ class MessageSpaceFooter extends StatelessWidget {
               suffix: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: FloatingActionButton.small(
+                  heroTag: null,
                   child: const Icon(Icons.send),
                   onPressed: () {},
                 ),
