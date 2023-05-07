@@ -18,8 +18,7 @@ class MessageSpaceRoot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.red,
+    return SizedBox(
       height: MediaQuery.of(context).size.height,
       width: RootConstants().spaceWidth,
       child: Scaffold(
