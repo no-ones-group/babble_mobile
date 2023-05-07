@@ -28,7 +28,8 @@ class _ProfileSpaceRootState extends State<ProfileSpaceRoot> {
               (snapshot.hasData && snapshot.data != null)) {
             double radius = MediaQuery.of(context).size.width * 0.25;
             return Container(
-              width: MediaQuery.of(context).size.width,
+              color: Colors.white10,
+              width: 376,
               height: MediaQuery.of(context).size.height,
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -38,7 +39,7 @@ class _ProfileSpaceRootState extends State<ProfileSpaceRoot> {
                       padding: const EdgeInsets.all(20),
                       child: CircleAvatar(
                         backgroundColor: Colors.black12,
-                        radius: radius <= 200 ? radius : 200,
+                        radius: radius <= 195 ? radius : 195,
                       ),
                     ),
                     Padding(
@@ -75,8 +76,14 @@ class _ProfileSpaceRootState extends State<ProfileSpaceRoot> {
             );
           }
         }
-        return const CircularProgressIndicator(
-          color: Colors.red,
+        return Container(
+          width: 367,
+          height: MediaQuery.of(context).size.height,
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: Colors.red,
+            ),
+          ),
         );
       }),
     );
