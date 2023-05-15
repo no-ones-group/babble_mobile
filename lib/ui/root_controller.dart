@@ -1,14 +1,17 @@
+import 'dart:developer';
+
 import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RootController extends GetxController {
   var pageTitle = ''.obs;
   String loggedInUserPhoneNumber = '1';
-  var userPersistentValues = GetStorage('user');
+  var extendedMenuVisible = true.obs;
+  var pref = SharedPreferences.getInstance();
   Widget pageContent = const SizedBox(
     child: Center(
       child: Text('Welcome to Babble Land!'),
@@ -20,22 +23,24 @@ class RootController extends GetxController {
   void setPage(Widget page, String title) {
     pageTitle.value = title;
     pageContent = page;
+    update();
   }
 
-  bool isUserLoggedIn() {
-    return userPersistentValues.read<String>('id') != null &&
-        userPersistentValues.read<String>('id')!.isNotEmpty;
-  }
-
-  @override
-  void onInit() async {
-    if (isUserLoggedIn()) {
-      loggedInUserPhoneNumber = userPersistentValues.read<String>('id')!;
-    }
+  Future refreshUserData() async {
     userDoc = FirebaseFirestore.instance
         .collection('users')
         .doc(loggedInUserPhoneNumber);
     user = await UserAPI().getUser(loggedInUserPhoneNumber);
+  }
+
+  @override
+  void onInit() async {
+    var pref = await SharedPreferences.getInstance();
+    if (pref.containsKey('user_id')) {
+      loggedInUserPhoneNumber = pref.getString('user_id')!;
+      log(pref.getString('user_id')!);
+    }
+    await refreshUserData();
     super.onInit();
   }
 }

@@ -20,7 +20,7 @@ class ExtendedSidebarRoot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: RootConstants().extendedSidebarWidth,
       height: MediaQuery.of(context).size.height,
       child: Obx(

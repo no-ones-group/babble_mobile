@@ -1,3 +1,5 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/constants/sidebar_constants.dart';
 import 'package:babble_mobile/ui/extended_sidebar/chat_sidebar/chat_sidebar_root.dart';
@@ -13,19 +15,23 @@ import 'package:iconsax/iconsax.dart';
 import 'package:get/get.dart';
 
 class SidebarRoot extends StatelessWidget {
-  final SidebarController _sidebarController = Get.find<SidebarController>();
+  bool isVisible = true;
+  final Duration duration;
+  final SidebarController _sidebarController =
+      Get.put<SidebarController>(SidebarController());
   final RootController _rootController = Get.find<RootController>();
   final ExtendedSidebarController _extendedSidebarController =
       Get.find<ExtendedSidebarController>();
-  SidebarRoot({super.key});
+  SidebarRoot(this.isVisible, this.duration, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Material(
       elevation: 10,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(5),
-        width: RootConstants().sidebarWidth,
+        width: isVisible ? RootConstants().sidebarWidth : 0,
         color: SidebarConstants().sidebarColor,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -77,7 +83,8 @@ class SidebarRoot extends StatelessWidget {
                         _extendedSidebarController.selectedSidebarItemId.value =
                             3;
                     _rootController.setPage(
-                        const ProfileSpaceRoot(), 'Profile Settings');
+                        ProfileSpaceRoot(_rootController.user),
+                        'Profile Settings');
                   },
                 ),
                 const SizedBox(

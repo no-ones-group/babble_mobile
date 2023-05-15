@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class RootConstants {
-  // UI constants
-  bool get isMobileScreen => Get.size.width <= 500;
-
+  // old
   static double get headerHeight => 60;
 
   static double get footerHeight => 70;
@@ -20,6 +20,29 @@ class RootConstants {
   static bool get spaceVisible => !isPlatformMobile;
 
   double get spaceWidth => Get.size.width - sidebarWidth - extendedSidebarWidth;
+
+  // new
+  static Color get userMessageColor => Colors.blue;
+
+  static Color get notUserMessageColor => Colors.red;
+
+  static TextStyle get textStyleHeader => GoogleFonts.poppins(
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
+      );
+
+  static TextStyle get textStyleSubHeader => GoogleFonts.poppins(
+        fontSize: 20,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      );
+
+  static TextStyle get textStyleContent => GoogleFonts.poppins(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        color: Colors.white,
+      );
 }
 
 mixin CollectionFields {

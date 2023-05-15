@@ -1,6 +1,3 @@
-import 'dart:developer';
-
-import 'package:babble_mobile/api/message_space_api.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -44,10 +41,5 @@ class UserAPI {
       User.spacesField: FieldValue.arrayUnion(
           [_instance.collection(Space.spacesCollection).doc(space.uuid)])
     });
-  }
-
-  Future<void> createSpace(Space space) async {
-    await MessageSpaceAPI().createSpace(space);
-    await addSpace(space.createdBy.id, space);
   }
 }
