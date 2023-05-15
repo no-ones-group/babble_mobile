@@ -1,28 +1,21 @@
 // ignore_for_file: must_be_immutable
 
-import 'dart:developer';
-
 import 'package:babble_mobile/api/message_space_api.dart';
 import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/models/space.dart';
-import 'package:babble_mobile/models/user.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
-import 'package:babble_mobile/ui/space/profile_space/profile_space_controller.dart';
-import 'package:babble_mobile/ui/space/profile_space/profile_space_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ProfileSpaceRoot extends StatelessWidget {
-  final User user;
-  ProfileSpaceRoot(this.user, {super.key});
+class SpaceProfileSpace extends StatelessWidget {
+  final Space space;
+  SpaceProfileSpace(this.space, {super.key});
 
   RxBool profilePicPrivacy = false.obs;
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      future: UserAPI().getUser(user.id),
+      future: MessageSpaceAPI().getSpace(space.uuid),
       builder: ((context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (!snapshot.hasError ||
@@ -53,22 +46,8 @@ class ProfileSpaceRoot extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text('Display Name'),
-                            Text(snapshot.data!.displayName),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 20,
-                          right: 20,
-                          bottom: 20,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Full Name'),
-                            Text(snapshot.data!.fullName),
+                            const Text('Group Name'),
+                            Text(snapshot.data!.spaceName),
                           ],
                         ),
                       ),

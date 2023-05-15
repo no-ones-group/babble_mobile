@@ -3,6 +3,7 @@ import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
 import 'package:babble_mobile/ui/extended_sidebar/chat_sidebar/chat_sidebar_controller.dart';
 import 'package:babble_mobile/ui/extended_sidebar/contact_tile/chats.dart';
+import 'package:babble_mobile/ui/extended_sidebar/shrinking_tile.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -36,7 +37,7 @@ class ChatSidebarRoot extends StatelessWidget with CollectionFields {
                   builder: (context, snapshot) {
                     if (snapshot.data != null &&
                         snapshot.connectionState == ConnectionState.done) {
-                      return Chats(
+                      return ShrinkingTile(
                           space:
                               Space.fromDocumentSnapshotObject(snapshot.data!));
                     }

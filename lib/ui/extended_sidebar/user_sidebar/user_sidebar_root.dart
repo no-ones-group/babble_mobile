@@ -1,13 +1,19 @@
+import 'dart:convert';
+
 import 'package:babble_mobile/models/user.dart';
 import 'package:babble_mobile/ui/extended_sidebar/contact_tile/tiles.dart';
+import 'package:babble_mobile/ui/extended_sidebar/shrinking_tile.dart';
 import 'package:babble_mobile/ui/extended_sidebar/user_sidebar/user_sidebar_controller.dart';
+import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/ui/space/profile_space/profile_space_root.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class UserSidebarRoot extends StatelessWidget {
   final UserSidebarController _userSidebarController =
-      Get.put(UserSidebarController());
+      Get.find<UserSidebarController>();
+  final _rootController = Get.find<RootController>();
   UserSidebarRoot({super.key});
 
   @override
@@ -18,24 +24,31 @@ class UserSidebarRoot extends StatelessWidget {
         stream: _userSidebarController.data,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
+            List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = [];
+            for (var contact in _userSidebarController.contacts) {
+              for (var phone in contact.phones) {
+                for (var doc in snapshot.data!.docs) {
+                  if (doc.id == phone.number ||
+                      doc.id == phone.normalizedNumber) {
+                    docs.add(doc);
+                  }
+                }
+              }
+            }
             return ListView.builder(
               itemBuilder: (context, index) {
-                return Tiles(
-                  user: User(
-                    id: snapshot.data?.docs[index].get(User.idField) ?? '',
-                    displayName:
-                        snapshot.data?.docs[index].get(User.displayNameField) ??
-                            '',
-                    fullName:
-                        snapshot.data?.docs[index].get(User.fullNameField) ??
-                            '',
-                    profilePicLink: snapshot.data?.docs[index]
-                            .get(User.profilePicLinkField) ??
-                        '',
-                  ),
-                );
+                User user = User(
+                    id: docs[index].get(User.idField) ?? '',
+                    displayName: docs[index].get(User.displayNameField) ?? '',
+                    fullName: docs[index].get(User.fullNameField) ?? '',
+                    profilePicLink:
+                        docs[index].get(User.profilePicLinkField) ?? '',
+                    spaces: (docs[index].get(User.spacesField) as List)
+                        .map((item) => item as DocumentReference)
+                        .toList());
+                return ShrinkingTile(user: user);
               },
-              itemCount: snapshot.data?.docs.length,
+              itemCount: docs.length,
             );
           }
           return const Center(

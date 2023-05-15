@@ -19,7 +19,6 @@ class MessageSpaceRoot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: MediaQuery.of(context).size.height,
       width: RootConstants().spaceWidth,
       child: Scaffold(
         appBar: AppBar(

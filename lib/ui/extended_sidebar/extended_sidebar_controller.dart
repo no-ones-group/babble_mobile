@@ -7,13 +7,9 @@ import 'package:get/get.dart';
 
 class ExtendedSidebarController extends GetxController {
   RxString hoveredId = ('-1').obs;
-  var selectedUser = (User(id: '', fullName: '', displayName: '')).obs;
+  var selectedUser = User.defaultV1().obs;
   var selectedChat = Space.defaultV1().obs;
   RxInt selectedSidebarItemId = 0.obs;
   List titles = ['Chats', 'Users', 'Settings', 'Profile'];
   RootController rootController = Get.find<RootController>();
-  @override
-  void onInit() {
-    super.onInit();
-  }
 }

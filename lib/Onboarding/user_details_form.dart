@@ -30,19 +30,17 @@ class UserDetailsForm extends StatelessWidget {
           TextButton(
             onPressed: () async {
               var nav = Navigator.of(context);
-              Navigator.popUntil(context, (route) => true);
+              nav.popUntil((route) => true);
               User user = User(
                 id: _rootController.loggedInUserPhoneNumber,
                 fullName: _fullNameTEController.text,
                 displayName: _displayNameTEController.text,
               );
               var isRegistered =
-                  !(await UserAPI().isUserAlreadyRegistered(user.id));
+                  (await UserAPI().isUserAlreadyRegistered(user.id));
               if (!isRegistered) {
                 UserAPI().createUser(user);
               }
-              _rootController.userPersistentValues
-                  .write('id', _rootController.loggedInUserPhoneNumber);
               await nav.push(MaterialPageRoute(builder: ((context) => Root())));
             },
             child: const Text('Save'),

@@ -1,21 +1,13 @@
 // ignore_for_file: must_be_immutable
 
-import 'dart:developer';
-
-import 'package:babble_mobile/api/message_space_api.dart';
 import 'package:babble_mobile/api/user_api.dart';
-import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
-import 'package:babble_mobile/ui/space/profile_space/profile_space_controller.dart';
-import 'package:babble_mobile/ui/space/profile_space/profile_space_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ProfileSpaceRoot extends StatelessWidget {
+class UserProfileSpace extends StatelessWidget {
   final User user;
-  ProfileSpaceRoot(this.user, {super.key});
+  UserProfileSpace(this.user, {super.key});
 
   RxBool profilePicPrivacy = false.obs;
 

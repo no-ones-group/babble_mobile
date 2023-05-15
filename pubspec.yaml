@@ -31,7 +31,6 @@ dependencies:
   flutter:
     sdk: flutter
   get:
-  get_storage:
   heroicons:
   iconsax:
   firebase_core:
@@ -41,9 +40,11 @@ dependencies:
   url_launcher:
   uuid:
   badges:
-  resizable_widget:
   firebase_messaging:
-  glass:
+  shared_preferences:
+  hexcolor:
+  flutter_contacts:
+  file_picker:
 
 
   # The following adds the Cupertino Icons font to your application.

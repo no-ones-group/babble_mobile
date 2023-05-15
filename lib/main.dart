@@ -1,29 +1,25 @@
+import 'dart:developer';
+
+import 'package:babble_mobile/Onboarding/login_screen_mobile.dart';
 import 'package:babble_mobile/Onboarding/new_login_screen.dart';
+import 'package:babble_mobile/new_ui/root/root.dart';
 import 'package:babble_mobile/ui/extended_sidebar/extended_sidebar_controller.dart';
 import 'package:babble_mobile/ui/extended_sidebar/user_sidebar/user_sidebar_controller.dart';
-import 'package:babble_mobile/ui/root.dart';
+import 'package:babble_mobile/new_ui/root/root.dart';
 import 'package:babble_mobile/ui/root_controller.dart';
 import 'package:babble_mobile/ui/sidebar/sidebar_controller.dart';
 import 'package:babble_mobile/ui/space/message_space/message_space_controller.dart';
+import 'package:babble_mobile/ui/space/message_space/widgets/message_conntroller.dart';
 import 'package:babble_mobile/ui/space/profile_space/profile_space_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-
-enum Configuration {
-  debug,
-  profile,
-  release,
-}
-
-late Configuration configuration;
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
-  String env = const String.fromEnvironment("env", defaultValue: "debug");
-  configuration = env == "debug" ? Configuration.debug : Configuration.profile;
   WidgetsFlutterBinding.ensureInitialized();
-  await GetStorage.init();
+  await SharedPreferences.getInstance();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: 'AIzaSyDnQpuJwp9jGOgMjx2WXHKxOSayw2AXOC4',
@@ -32,17 +28,23 @@ void main() async {
       projectId: 'babble-8e028',
     ),
   );
-  Get.put<RootController>(RootController());
-  Get.put<SidebarController>(SidebarController());
-  Get.put<ProfileSpaceController>(ProfileSpaceController());
-  Get.put<UserSidebarController>(UserSidebarController());
-  Get.put<ExtendedSidebarController>(ExtendedSidebarController());
-  Get.put<MessageSpaceController>(MessageSpaceController());
+  Get.put(RootController());
+  Get.put(SidebarController());
+  Get.put(ProfileSpaceController());
+  Get.put(UserSidebarController());
+  Get.put(ExtendedSidebarController());
+  Get.put(MessageSpaceController());
+  await Future.delayed(const Duration(seconds: 2));
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
+  static Future<bool> get shouldSignIn async {
+    var data = await SharedPreferences.getInstance();
+    return data.containsKey('user_id');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +55,29 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
       ),
       home: SafeArea(
-        child: Get.find<RootController>().isUserLoggedIn()
-            ? Root()
-            : NewLoginScreen(),
+        child: FutureBuilder<bool>(
+          future: shouldSignIn,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return snapshot.data != null && snapshot.data!
+                  ? FutureBuilder(
+                      future: Future.delayed(const Duration(seconds: 5)),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState != ConnectionState.done) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+                        return Root();
+                      })
+                  : kIsWeb
+                      ? NewLoginScreen()
+                      : LoginScreenMobile();
+            }
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        ),
       ),
     );
   }

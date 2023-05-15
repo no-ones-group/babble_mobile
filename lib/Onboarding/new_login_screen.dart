@@ -41,9 +41,10 @@ class NewLoginScreen extends StatelessWidget {
                   width: MediaQuery.of(context).size.width * 0.5,
                   child: TextField(
                     style: const TextStyle(color: Colors.white),
-                    onSubmitted: (value) {
+                    onSubmitted: (value) async {
+                      var nav = Navigator.of(context);
                       _rootController.loggedInUserPhoneNumber = value;
-                      Navigator.of(context).push(MaterialPageRoute(
+                      nav.push(MaterialPageRoute(
                           builder: (context) => NewOTPScreen(value)));
                     },
                   ),

@@ -3,13 +3,17 @@ import 'package:babble_mobile/api/authentication_api.dart';
 import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/ui/root.dart';
+import 'package:babble_mobile/ui/root_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class NewOTPScreen extends StatelessWidget {
   final String phoneNumber;
-  const NewOTPScreen(this.phoneNumber, {super.key});
+  final _rootController = Get.find<RootController>();
+  String verificationId = '';
+  NewOTPScreen(this.phoneNumber, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,13 +44,8 @@ class NewOTPScreen extends StatelessWidget {
                               .signInWithCredential(cred);
                         },
                         verificationFailed: (_) {},
-                        codeSent: (verificationId, forceResendingToken) async {
-                          PhoneAuthCredential cred =
-                              PhoneAuthProvider.credential(
-                                  verificationId: verificationId,
-                                  smsCode: phoneNumber);
-                          await FirebaseAuth.instance
-                              .signInWithCredential(cred);
+                        codeSent: (verificationId, forceResendingToken) {
+                          verificationId = verificationId;
                         },
                         codeAutoRetrievalTimeout: (_) {},
                       ),
@@ -59,6 +58,20 @@ class NewOTPScreen extends StatelessWidget {
                             ),
                             onSubmitted: (value) async {
                               var nav = Navigator.of(context);
+                              if (verificationId == '') {
+                                return;
+                              }
+                              PhoneAuthCredential cred =
+                                  PhoneAuthProvider.credential(
+                                      verificationId: verificationId,
+                                      smsCode: value);
+                              if ((await FirebaseAuth.instance
+                                          .signInWithCredential(cred))
+                                      .user !=
+                                  null) {
+                                (await _rootController.pref)
+                                    .setString('user_id', phoneNumber);
+                              }
                               if (await UserAPI()
                                   .isUserAlreadyRegistered(phoneNumber)) {
                                 nav.push(MaterialPageRoute(
@@ -85,10 +98,12 @@ class NewOTPScreen extends StatelessWidget {
                               if (snapshot.hasData) {
                                 await AuthenticationAPI()
                                     .verifyOTP(snapshot.data!, value);
+                                var data = await _rootController.pref;
+                                data.setString('user_id', phoneNumber);
                                 if (await UserAPI()
                                     .isUserAlreadyRegistered(phoneNumber)) {
                                   nav.push(MaterialPageRoute(
-                                      builder: ((context) => Root())));
+                                      builder: ((context) => RootAndroid())));
                                 } else {
                                   nav.push(MaterialPageRoute(
                                       builder: ((context) =>
