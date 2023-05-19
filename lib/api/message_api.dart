@@ -8,12 +8,12 @@ class MessageAPI {
   void sendMessage(MessageModel msg) async {
     String uuid = const Uuid().v1();
     await firebaseFirestoreInstance.collection('Message').doc(uuid).set({
-      MessageField.id.name: uuid,
-      MessageField.by.name: msg.by,
-      MessageField.messageType.name: msg.messageType,
-      MessageField.replyingTo.name: msg.replyingTo,
-      MessageField.chatSpace.name: msg.chatSpace,
-      MessageField.content.name: msg.content,
+      MessageModel.idField: uuid,
+      MessageModel.byField: msg.by,
+      MessageModel.messageTypeField: msg.messageType,
+      MessageModel.replyingToField: msg.replyingTo,
+      MessageModel.chatSpaceField: msg.chatSpace,
+      MessageModel.contentField: msg.content,
     });
   }
 

@@ -1,6 +1,5 @@
 import 'package:babble_mobile/Onboarding/login_otp_screen_mobile.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
-import 'package:babble_mobile/ui/space/widgets/glass.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -14,9 +13,10 @@ class LoginScreenMobile extends StatelessWidget {
 
   void verify(BuildContext context) async {
     var auth = FirebaseAuth.instance;
-    _rootController.loggedInUserPhoneNumber = _textEditingController.text;
+    _rootController.loggedInUserPhoneNumber =
+        '+91${_textEditingController.text}';
     await auth.verifyPhoneNumber(
-      phoneNumber: _textEditingController.text,
+      phoneNumber: '+91${_textEditingController.text}',
       verificationCompleted: (_) {},
       verificationFailed: (_) {},
       codeSent: (verificationId, forceResendingToken) {
@@ -31,7 +31,7 @@ class LoginScreenMobile extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Container(
+        body: SizedBox(
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: Column(

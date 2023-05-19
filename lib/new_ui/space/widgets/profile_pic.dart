@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:babble_mobile/models/user.dart';
-import 'package:babble_mobile/new_ui/space/user_profile_space.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePic extends StatelessWidget {

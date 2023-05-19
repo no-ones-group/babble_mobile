@@ -1,10 +1,11 @@
-import 'package:babble_mobile/models/user.dart';
-import 'package:babble_mobile/ui/extended_sidebar/contact_tile/chats.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:encrypt/encrypt.dart';
 import 'package:uuid/uuid.dart';
 
 class Space {
-  String uuid = const Uuid().v1();
+  String uuid = const Uuid().v4();
+  late final String key;
+  late final String iv;
   late final String spaceName;
   late final DocumentReference createdBy;
   late final Timestamp createdTime;
@@ -16,6 +17,8 @@ class Space {
   late final String displayName2;
 
   static String get uuidField => 'uuid';
+  static String get keyField => 'key';
+  static String get ivField => 'iv';
   static String get spaceNameField => 'spaceName';
   static String get createdByField => 'createdBy';
   static String get createdTimeField => 'createdTime';
@@ -33,7 +36,9 @@ class Space {
       .collection('/$spacesCollection/$uuid/$messagesField');
 
   Space({
-    required this.spaceName,
+    required this.key,
+    required this.iv,
+    this.spaceName = '',
     required this.spacePic,
     required this.createdBy,
     required this.createdTime,
@@ -49,9 +54,11 @@ class Space {
       return;
     }
 
-    spacePic = data[spacePicField] as String;
     uuid = data[uuidField] as String;
-    spaceName = data[spaceNameField] as String;
+    key = data[keyField] as String;
+    iv = data[ivField] as String;
+    spaceName = data[spaceNameField] ?? '';
+    spacePic = data[spacePicField] as String;
     createdBy = data[createdByField] as DocumentReference;
     createdTime = data[createdTimeField] as Timestamp;
     shouldAddUser = data[shouldAddUserField] as bool;
@@ -70,9 +77,11 @@ class Space {
       return;
     }
 
-    spacePic = data[spacePicField] as String;
     uuid = data[uuidField] as String;
-    spaceName = data[spaceNameField] as String;
+    key = data[keyField] as String;
+    iv = data[ivField] as String;
+    spaceName = data[spaceNameField] ?? '';
+    spacePic = data[spacePicField] as String;
     createdBy = data[createdByField] as DocumentReference;
     createdTime = data[createdTimeField] as Timestamp;
     shouldAddUser = data[shouldAddUserField] as bool;
@@ -88,6 +97,8 @@ class Space {
 
   Space.defaultV1() {
     uuid = 'defaultUUID';
+    key = Key.fromSecureRandom(32).base64;
+    iv = IV.fromSecureRandom(16).base64;
     spacePic = '';
     spaceName = 'defaultSpaceName';
     createdBy = FirebaseFirestore.instance.collection('spaces').doc('1');
@@ -101,8 +112,10 @@ class Space {
 
   Space.fromObject(Map<String, dynamic>? data) {
     uuid = data![uuidField];
+    key = data[keyField] as String;
+    iv = data[ivField] as String;
     spacePic = data[spacePicField] as String;
-    spaceName = data[spaceNameField] as String;
+    spaceName = data[spaceNameField] ?? '';
     createdBy = data[createdByField] as DocumentReference;
     createdTime = data[createdTimeField] as Timestamp;
     shouldAddUser = data[shouldAddUserField] as bool;

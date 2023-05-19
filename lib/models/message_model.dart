@@ -1,8 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'space.dart';
-import 'user.dart';
-
 class MessageModel {
   late final String id;
   late final String content;
@@ -40,16 +37,17 @@ class MessageModel {
     sentTime = data[sentTimeField] as Timestamp;
     chatSpace = data[chatSpaceField] as DocumentReference;
   }
-}
 
-enum MessageField {
-  id,
-  content,
-  messageType,
-  replyingTo,
-  by,
-  sentTime,
-  chatSpace,
+  MessageModel.fromDocumentSnapshot(DocumentSnapshot<Object?>? data) {
+    id = data![idField];
+    content = data[contentField];
+    messageType =
+        MessageType.values.firstWhere((e) => e.name == data[messageTypeField]);
+    replyingTo = data[replyingToField] as DocumentReference?;
+    by = data[byField] as DocumentReference;
+    sentTime = data[sentTimeField] as Timestamp;
+    chatSpace = data[chatSpaceField] as DocumentReference;
+  }
 }
 
 enum MessageType {

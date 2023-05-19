@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/constants/root_constants.dart';
@@ -25,6 +24,8 @@ class MessageSpaceAPI with CollectionFields {
   Future<void> createSpace(Space space) async {
     await _firestoreInstance.collection(Spaces).doc(space.uuid).set({
       Space.uuidField: space.uuid,
+      Space.keyField: space.key,
+      Space.ivField: space.iv,
       Space.createdByField: space.createdBy,
       Space.createdTimeField: space.createdTime,
       Space.shouldAddUserField: space.shouldAddUser,

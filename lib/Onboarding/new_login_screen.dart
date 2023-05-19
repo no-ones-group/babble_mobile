@@ -1,7 +1,5 @@
 import 'package:babble_mobile/Onboarding/new_otp_screen.dart';
-import 'package:babble_mobile/constants/root_constants.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';

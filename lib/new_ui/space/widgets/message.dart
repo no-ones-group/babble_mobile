@@ -1,113 +1,130 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:babble_mobile/models/message_model.dart';
+import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
 import 'package:babble_mobile/new_ui/space/widgets/utils/custom_rect_tween.dart';
 import 'package:babble_mobile/new_ui/space/widgets/utils/hero_dialog_route.dart';
 import 'package:babble_mobile/new_ui/space/widgets/utils/message_controller.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 class Message extends StatelessWidget {
   final MessageModel messageModel;
+  final Space space;
   final Color _color = Colors.red;
   final messageController = Get.find<MessageController>();
   final RootController _rootController = Get.find<RootController>();
+  late final String decryptedContent;
   Message({
     super.key,
     required this.messageModel,
-  });
+    required this.space,
+  }) {
+    encrypt.Key key = encrypt.Key.fromBase64(space.key);
+    encrypt.IV iv = encrypt.IV.fromBase64(space.iv);
+    encrypt.Encrypter decrypter = encrypt.Encrypter(encrypt.AES(key));
+    decryptedContent = decrypter.decrypt64(messageModel.content, iv: iv);
+  }
+
+  Future deleteMessage() async {
+    await space.messagesCollection.doc(messageModel.id).delete();
+  }
 
   @override
   Widget build(BuildContext context) {
     bool isLoggedInUser = messageModel.by.id == _rootController.user.id;
     return Align(
       alignment: isLoggedInUser ? Alignment.topRight : Alignment.topLeft,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Obx(
-            () => Container(
-              margin:
-                  const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-              padding: const EdgeInsets.fromLTRB(10, 5, 10, 10),
-              // constraints: BoxConstraints(
-              //   maxWidth: Get.width * 0.7,
-              // ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: messageController.isReplying.value &&
-                        messageController.isReplyingTo.value == messageModel.id
-                    ? _color
-                    : isLoggedInUser
-                        ? const Color.fromRGBO(19, 196, 163, 1)
-                        : const Color.fromRGBO(76, 96, 133, 1),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+      child: Obx(
+        () => Container(
+          margin: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+          padding: const EdgeInsets.all(10),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.7,
+            // minWidth: MediaQuery.of(context).size.width * 0.4,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: messageController.isReplying.value &&
+                    messageController.isReplyingTo.value == messageModel.id
+                ? _color
+                : isLoggedInUser
+                    ? const Color.fromRGBO(19, 196, 163, 1)
+                    : const Color.fromRGBO(76, 96, 133, 1),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      FutureBuilder<DocumentSnapshot>(
-                        future: messageModel.by.get(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData && snapshot.data != null) {
-                            return Text(
-                              snapshot.data!.get(User.displayNameField),
-                              style: GoogleFonts.poppins(),
-                            );
-                          }
-                          return Text(
-                            'loading...',
-                            style: GoogleFonts.poppins(),
-                          );
-                        },
-                      ),
-                      PopupMenuButton(
-                        padding: EdgeInsets.zero,
-                        itemBuilder: (context) {
-                          return [
-                            PopupMenuItem(
-                              child: const Text('Reply'),
-                              onTap: () {
-                                messageController.isReplying.value = true;
-                                messageController.isReplyingTo.value =
-                                    messageModel.id;
-                              },
-                            ),
-                          ];
-                        },
-                        child: const Icon(Icons.arrow_drop_down_outlined),
-                      ),
-                    ],
+                  FutureBuilder<DocumentSnapshot>(
+                    future: messageModel.by.get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        return Text(
+                          snapshot.data!.get(User.displayNameField),
+                          style: GoogleFonts.poppins(),
+                        );
+                      }
+                      return Text(
+                        'loading...',
+                        style: GoogleFonts.poppins(),
+                      );
+                    },
                   ),
-                  messageModel.replyingTo != null
-                      ? ReplyingTo(messageModel.replyingTo!)
-                      : const SizedBox(),
-                  Content(
-                    messageType: messageModel.messageType,
-                    content: messageModel.content,
+                  PopupMenuButton(
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          child: const Text('Reply'),
+                          onTap: () {
+                            messageController.isReplying.value = true;
+                            messageController.isReplyingTo.value =
+                                messageModel.id;
+                          },
+                        ),
+                        PopupMenuItem(
+                          child: const Text('Delete'),
+                          onTap: () async {
+                            await deleteMessage();
+                          },
+                        ),
+                      ];
+                    },
+                    child: const Icon(Icons.settings),
                   ),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                          '${messageModel.sentTime.toDate().hour}:${messageModel.sentTime.toDate().minute} ${messageModel.sentTime.toDate().hour < 12 ? 'AM' : 'PM'}'),
-                    ],
-                  )
                 ],
               ),
-            ),
+              messageModel.replyingTo != null
+                  ? ReplyingTo(messageModel.replyingTo!, space)
+                  : const SizedBox(),
+              Content(
+                messageType: messageModel.messageType,
+                content: decryptedContent,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                      '${messageModel.sentTime.toDate().hour}:${messageModel.sentTime.toDate().minute} ${messageModel.sentTime.toDate().hour < 12 ? 'AM' : 'PM'}'),
+                ],
+              )
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -115,27 +132,29 @@ class Message extends StatelessWidget {
 
 class ReplyingTo extends StatelessWidget {
   final DocumentReference message;
-  const ReplyingTo(this.message, {super.key});
+  final Space space;
+  const ReplyingTo(this.message, this.space, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8),
-      constraints: BoxConstraints(maxWidth: Get.width * 0.7),
       decoration: BoxDecoration(
-        color: Colors.red,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: FutureBuilder(
+          color: Colors.white24, borderRadius: BorderRadius.circular(8)),
+      child: FutureBuilder<DocumentSnapshot<Object?>>(
         future: message.get(),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data != null) {
-            String text = snapshot.data!.get('messageType') == 'text'
-                ? snapshot.data!.get('content')
-                : '${snapshot.data!.get('messageType')}';
-            return Text(
-              text,
-              overflow: TextOverflow.ellipsis,
+            MessageModel replyModel =
+                MessageModel.fromDocumentSnapshot(snapshot.data);
+            encrypt.Key key = encrypt.Key.fromBase64(space.key);
+            encrypt.IV iv = encrypt.IV.fromBase64(space.iv);
+            encrypt.Encrypter decrypter = encrypt.Encrypter(encrypt.AES(key));
+            String decryptedContent =
+                decrypter.decrypt64(replyModel.content, iv: iv);
+            return Content(
+              messageType: replyModel.messageType,
+              content: decryptedContent,
             );
           }
           return const Text('Message was deleted');
@@ -149,6 +168,15 @@ class Content extends StatelessWidget {
   final MessageType messageType;
   final String content;
   final List<InlineSpan> spans = [];
+  late final File file;
+
+  Future<void> prepareContent() async {
+    if (messageType != MessageType.text) {
+      file = File("cache_file.cache");
+      file = await file.writeAsBytes(base64.decode(content));
+    }
+  }
+
   Content({super.key, required this.messageType, required this.content}) {
     if (messageType == MessageType.text) {
       content.toString().split(' ').forEach((e) {
@@ -165,7 +193,6 @@ class Content extends StatelessWidget {
               },
               child: Text(
                 '$e ',
-                maxLines: 50,
                 style: const TextStyle(
                   overflow: TextOverflow.clip,
                   color: Colors.blue,
@@ -189,12 +216,8 @@ class Content extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    prepareContent();
     return Container(
-      margin: const EdgeInsets.only(top: 8, bottom: 8),
-      padding: const EdgeInsets.all(8),
-      constraints: BoxConstraints(maxWidth: Get.width * 0.7),
-      decoration: BoxDecoration(
-          color: Colors.white24, borderRadius: BorderRadius.circular(8)),
       child: messageType == MessageType.text
           ? RichText(
               text: TextSpan(
@@ -222,9 +245,7 @@ class Content extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Image.memory(
-                        base64.decode(content),
-                      ),
+                      child: Image.memory(base64.decode(content)),
                     ),
                   ),
                 )
@@ -235,7 +256,9 @@ class Content extends StatelessWidget {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Placeholder(),
+                      child: VideoPlayer(
+                        VideoPlayerController.file(file),
+                      ),
                     )
                   : const SizedBox(
                       child: Text('Un-Identified MessageType'),

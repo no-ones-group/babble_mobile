@@ -2,11 +2,12 @@ import 'package:babble_mobile/api/message_space_api.dart';
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class CreateChatSpace extends StatelessWidget {
   final User user;
@@ -47,7 +48,12 @@ class CreateChatSpace extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
+              final nav = Navigator.of(context);
+              encrypt.Key key = encrypt.Key.fromSecureRandom(32);
+              encrypt.IV iv = encrypt.IV.fromSecureRandom(16);
               Space space = Space(
+                key: key.base64,
+                iv: iv.base64,
                 spaceName: _textEditingController.text,
                 createdBy: _rootController.user.userDocumentReference,
                 createdTime: Timestamp.now(),
@@ -61,7 +67,7 @@ class CreateChatSpace extends StatelessWidget {
               );
               await MessageSpaceAPI().createSpace(space);
               await _rootController.refreshUserData();
-              Navigator.pop(context);
+              nav.pop();
             },
             child: Text(
               'Create',

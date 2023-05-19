@@ -1,14 +1,12 @@
-import 'dart:convert';
 
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/new_ui/space/chat_space.dart';
+import 'package:babble_mobile/new_ui/space/settings_space.dart';
 import 'package:babble_mobile/new_ui/space/user_space.dart';
 import 'package:babble_mobile/new_ui/space/widgets/logo.dart';
 import 'package:babble_mobile/new_ui/space/widgets/space_profile_picture.dart';
-import 'package:babble_mobile/new_ui/space/widgets/user_profile_pic.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -27,17 +25,19 @@ class Root extends StatelessWidget {
           size: LogoSize.medium,
         ),
         actions: [
-          PopupMenuButton(itemBuilder: (context) {
-            return [
-              const PopupMenuItem(child: Text('Coming Soon')),
-            ];
-          })
+          IconButton(
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => SettingsSpace()));
+            },
+            icon: const Icon(Icons.settings),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.of(context)
-              .push(MaterialPageRoute(builder: (context) => const UserSpace()));
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => const UserSpace(false, null, null)));
         },
         child: const Icon(Icons.chat),
       ),

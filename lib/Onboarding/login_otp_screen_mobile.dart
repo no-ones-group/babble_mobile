@@ -1,7 +1,7 @@
 import 'package:babble_mobile/Onboarding/user_details_form.dart';
 import 'package:babble_mobile/api/user_api.dart';
-import 'package:babble_mobile/ui/root.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

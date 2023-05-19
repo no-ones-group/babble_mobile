@@ -1,12 +1,12 @@
 import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 
-class UserSidebarController extends GetxController {
+class UserSpaceController extends GetxController {
   var selectedChat = (-1).obs;
   var rootController = Get.find<RootController>();
   var data = FirebaseFirestore.instance.collection('users').snapshots();

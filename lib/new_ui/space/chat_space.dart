@@ -6,13 +6,11 @@ import 'dart:io';
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/message_model.dart';
 import 'package:babble_mobile/models/space.dart';
-import 'package:babble_mobile/models/user.dart';
+import 'package:babble_mobile/new_ui/space/user_space.dart';
 import 'package:babble_mobile/new_ui/space/widgets/message.dart';
-import 'package:babble_mobile/new_ui/space/widgets/profile_pic.dart';
-import 'package:babble_mobile/new_ui/space/widgets/user_profile_pic.dart';
 import 'package:babble_mobile/new_ui/space/widgets/space_profile_picture.dart';
 import 'package:babble_mobile/new_ui/space/widgets/utils/message_controller.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -20,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:uuid/uuid.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class ChatSpace extends StatelessWidget {
   final Space space;
@@ -31,6 +30,9 @@ class ChatSpace extends StatelessWidget {
   Future sendMessage(MessageType type) async {
     DocumentReference? replyingToRef;
     String id = const Uuid().v1();
+    final encrypter =
+        encrypt.Encrypter(encrypt.AES(encrypt.Key.fromBase64(space.key)));
+    final iv = encrypt.IV.fromBase64(space.iv);
     if (_messageController.isReplying.isTrue) {
       replyingToRef = space.messagesCollection
           .doc('/${_messageController.isReplyingTo.value}');
@@ -38,7 +40,8 @@ class ChatSpace extends StatelessWidget {
     await space.messagesCollection.doc(id).set({
       MessageModel.byField: _rootController.user.userDocumentReference,
       MessageModel.chatSpaceField: space.spaceDocumentReference,
-      MessageModel.contentField: _textEditingController.text,
+      MessageModel.contentField:
+          encrypter.encrypt(_textEditingController.text, iv: iv).base64,
       MessageModel.idField: id,
       MessageModel.messageTypeField: type.name,
       MessageModel.replyingToField: replyingToRef,
@@ -49,14 +52,51 @@ class ChatSpace extends StatelessWidget {
     _messageController.isReplying.value = false;
   }
 
+  void uploadFile(BuildContext context, File file, MessageType type) {
+    Navigator.of(context).push(DialogRoute(
+        context: context,
+        builder: (context) => Dialog(
+              child: Column(
+                children: [
+                  Image.file(file),
+                  ElevatedButton(
+                      onPressed: () async {
+                        _textEditingController.text =
+                            base64.encode(await file.readAsBytes());
+                        await sendMessage(type);
+                      },
+                      child: Text(
+                        'Send',
+                        style: RootConstants.textStyleSubHeader,
+                      ))
+                ],
+              ),
+            )));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                child: const Text('Add user'),
+                onTap: () => Future(
+                  () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (_) => UserSpace(true, null, space)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
         title: Row(
           children: [
             SpaceProfilePic(space: space),
-            Padding(
+            Container(
               padding: const EdgeInsets.all(5),
               child: Text(
                 space.spaceName == ''
@@ -90,8 +130,10 @@ class ChatSpace extends StatelessWidget {
                       reverse: true,
                       itemBuilder: (context, index) {
                         return Message(
-                            messageModel: MessageModel.fromObject(
-                                snapshot.data!.docs[index].data()));
+                          messageModel: MessageModel.fromObject(
+                              snapshot.data!.docs[index].data()),
+                          space: space,
+                        );
                       },
                     );
                   }
@@ -117,40 +159,48 @@ class ChatSpace extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
                   child: Row(
                     children: [
-                      GestureDetector(
-                        child: const Icon(
-                          Icons.add_box_outlined,
-                          color: Color.fromARGB(255, 255, 184, 78),
-                        ),
-                        onTap: () async {
-                          FilePickerResult? result = await FilePicker.platform
-                              .pickFiles(type: FileType.image);
+                      PopupMenuButton(
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            child: const Text('Image'),
+                            onTap: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(type: FileType.image);
 
-                          if (result != null && result.files.isNotEmpty) {
-                            File file = File(result.files.single.path!);
-                            Navigator.of(context).push(DialogRoute(
-                                context: context,
-                                builder: (context) => Dialog(
-                                      child: Column(
-                                        children: [
-                                          Image.file(file),
-                                          ElevatedButton(
-                                              onPressed: () async {
-                                                _textEditingController.text =
-                                                    base64.encode(await file
-                                                        .readAsBytes());
-                                                sendMessage(MessageType.image);
-                                              },
-                                              child: Text(
-                                                'Send',
-                                                style: RootConstants
-                                                    .textStyleSubHeader,
-                                              ))
-                                        ],
-                                      ),
-                                    )));
-                          }
-                        },
+                              if (result != null && result.files.isNotEmpty) {
+                                File file = File(result.files.single.path!);
+                                uploadFile(context, file, MessageType.image);
+                              }
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: const Text('Audio'),
+                            onTap: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(type: FileType.audio);
+
+                              if (result != null && result.files.isNotEmpty) {
+                                File file = File(result.files.single.path!);
+                                uploadFile(context, file, MessageType.audio);
+                              }
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: const Text('Video'),
+                            onTap: () async {
+                              FilePickerResult? result = await FilePicker
+                                  .platform
+                                  .pickFiles(type: FileType.video);
+
+                              if (result != null && result.files.isNotEmpty) {
+                                File file = File(result.files.single.path!);
+                                uploadFile(context, file, MessageType.video);
+                              }
+                            },
+                          ),
+                        ],
                       ),
                       Obx(
                         () => _messageController.isReplying.isTrue

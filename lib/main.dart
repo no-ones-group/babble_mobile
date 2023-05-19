@@ -1,16 +1,10 @@
-import 'dart:developer';
 
 import 'package:babble_mobile/Onboarding/login_screen_mobile.dart';
 import 'package:babble_mobile/Onboarding/new_login_screen.dart';
 import 'package:babble_mobile/new_ui/root/root.dart';
-import 'package:babble_mobile/ui/extended_sidebar/extended_sidebar_controller.dart';
-import 'package:babble_mobile/ui/extended_sidebar/user_sidebar/user_sidebar_controller.dart';
-import 'package:babble_mobile/new_ui/root/root.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
-import 'package:babble_mobile/ui/sidebar/sidebar_controller.dart';
-import 'package:babble_mobile/ui/space/message_space/message_space_controller.dart';
-import 'package:babble_mobile/ui/space/message_space/widgets/message_conntroller.dart';
-import 'package:babble_mobile/ui/space/profile_space/profile_space_controller.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
+import 'package:babble_mobile/new_ui/space/user_space_controller.dart';
+import 'package:encrypt/encrypt.dart' as Encrypt;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -29,11 +23,14 @@ void main() async {
     ),
   );
   Get.put(RootController());
-  Get.put(SidebarController());
-  Get.put(ProfileSpaceController());
-  Get.put(UserSidebarController());
-  Get.put(ExtendedSidebarController());
-  Get.put(MessageSpaceController());
+  Get.put(UserSpaceController());
+  final iv = Encrypt.IV.fromSecureRandom(16);
+  Encrypt.Key key = Encrypt.Key.fromSecureRandom(32);
+  Encrypt.Encrypter encrypter = Encrypt.Encrypter(Encrypt.AES(key));
+  Encrypt.Encrypted encrypted = encrypter.encrypt('Hello', iv: iv);
+  print(encrypted.base64);
+  print(encrypter.decrypt(encrypted, iv: iv));
+
   await Future.delayed(const Duration(seconds: 2));
   runApp(const MyApp());
 }
@@ -43,7 +40,12 @@ class MyApp extends StatelessWidget {
 
   static Future<bool> get shouldSignIn async {
     var data = await SharedPreferences.getInstance();
-    return data.containsKey('user_id');
+    if (data.containsKey('user_id')) {
+      if (data.getString('user_id') != 'null') {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -59,16 +61,8 @@ class MyApp extends StatelessWidget {
           future: shouldSignIn,
           builder: (context, snapshot) {
             if (snapshot.hasData) {
-              return snapshot.data != null && snapshot.data!
-                  ? FutureBuilder(
-                      future: Future.delayed(const Duration(seconds: 5)),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState != ConnectionState.done) {
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        }
-                        return Root();
-                      })
+              return snapshot.data != null && !snapshot.data!
+                  ? Root()
                   : kIsWeb
                       ? NewLoginScreen()
                       : LoginScreenMobile();

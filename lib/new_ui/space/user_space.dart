@@ -1,20 +1,23 @@
 import 'package:babble_mobile/api/message_space_api.dart';
-import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
 import 'package:babble_mobile/new_ui/space/chat_space.dart';
 import 'package:babble_mobile/new_ui/space/create_chat_space.dart';
+import 'package:babble_mobile/new_ui/space/user_space_controller.dart';
 import 'package:babble_mobile/new_ui/space/widgets/user_profile_pic.dart';
-import 'package:babble_mobile/ui/extended_sidebar/user_sidebar/user_sidebar_controller.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 class UserSpace extends StatefulWidget {
-  const UserSpace({super.key});
+  final bool isAddToSpace;
+  final Space? space;
+  final User? user;
+  const UserSpace(this.isAddToSpace, this.user, this.space, {super.key});
 
   @override
   State<UserSpace> createState() => _UserSpaceState();
@@ -22,7 +25,7 @@ class UserSpace extends StatefulWidget {
 
 class _UserSpaceState extends State<UserSpace> {
   final _textEditingController = TextEditingController();
-  final _userSidebarController = Get.find<UserSidebarController>();
+  final _userSpaceController = Get.find<UserSpaceController>();
   final _rootController = Get.find<RootController>();
   String searchText = '';
 
@@ -58,11 +61,11 @@ class _UserSpaceState extends State<UserSpace> {
               }),
             ),
             StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-              stream: _userSidebarController.data,
+              stream: _userSpaceController.data,
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   List<QueryDocumentSnapshot<Map<String, dynamic>>> docs = [];
-                  for (var contact in _userSidebarController.contacts) {
+                  for (var contact in _userSpaceController.contacts) {
                     for (var phone in contact.phones) {
                       for (var doc in snapshot.data!.docs) {
                         if ((doc.id == phone.number ||
@@ -99,39 +102,56 @@ class _UserSpaceState extends State<UserSpace> {
                               style: RootConstants.textStyleContent,
                             ),
                             onTap: () async {
-                              final spaceRef = FirebaseFirestore.instance
-                                  .collection('spaces')
-                                  .doc(
-                                      '${user.userDocumentReference.id}-${_rootController.user.id}');
-                              bool chatExists = (await spaceRef.get()).exists;
-                              if (!chatExists) {
-                                Space space = Space(
-                                  spaceName: _textEditingController.text,
-                                  createdBy: _rootController
-                                      .user.userDocumentReference,
-                                  createdTime: Timestamp.now(),
-                                  shouldAddUser: false,
-                                  displayName1:
-                                      _rootController.user.displayName,
-                                  displayName2: user.displayName,
-                                  admins: [
-                                    _rootController.user.userDocumentReference
-                                  ],
-                                  users: [
-                                    _rootController.user.userDocumentReference,
-                                    user.userDocumentReference
-                                  ],
-                                  spacePic: '',
-                                );
-                                space.uuid =
-                                    '${user.userDocumentReference.id}-${_rootController.user.id}';
-                                MessageSpaceAPI().createSpace(space);
-                                await _rootController.refreshUserData();
+                              final nav = Navigator.of(context);
+                              if (!widget.isAddToSpace) {
+                                final spaceRef = FirebaseFirestore.instance
+                                    .collection('spaces')
+                                    .doc(
+                                        '${user.userDocumentReference.id}-${_rootController.user.id}');
+                                bool chatExists = (await spaceRef.get()).exists;
+                                if (!chatExists) {
+                                  encrypt.Key key =
+                                      encrypt.Key.fromSecureRandom(32);
+                                  encrypt.IV iv =
+                                      encrypt.IV.fromSecureRandom(16);
+                                  Space space = Space(
+                                    key: key.base64,
+                                    iv: iv.base64,
+                                    spaceName: _textEditingController.text,
+                                    createdBy: _rootController
+                                        .user.userDocumentReference,
+                                    createdTime: Timestamp.now(),
+                                    shouldAddUser: false,
+                                    displayName1:
+                                        _rootController.user.displayName,
+                                    displayName2: user.displayName,
+                                    admins: [
+                                      _rootController.user.userDocumentReference
+                                    ],
+                                    users: [
+                                      _rootController
+                                          .user.userDocumentReference,
+                                      user.userDocumentReference
+                                    ],
+                                    spacePic: '',
+                                  );
+                                  space.uuid =
+                                      '${user.userDocumentReference.id}-${_rootController.user.id}';
+                                  MessageSpaceAPI().createSpace(space);
+                                  await _rootController.refreshUserData();
+                                }
+                                Space space = Space.fromObject(
+                                    (await spaceRef.get()).data());
+                                nav.push(MaterialPageRoute(
+                                    builder: (context) => ChatSpace(space)));
+                              } else {
+                                await widget.space!.spaceDocumentReference
+                                    .update({
+                                  'users': FieldValue.arrayUnion(
+                                      [user.userDocumentReference]),
+                                });
+                                nav.pop();
                               }
-                              Space space = Space.fromObject(
-                                  (await spaceRef.get()).data());
-                              Navigator.of(context).push(MaterialPageRoute(
-                                  builder: (context) => ChatSpace(space)));
                             },
                             onLongPress: () => Navigator.of(context).push(
                                 DialogRoute(

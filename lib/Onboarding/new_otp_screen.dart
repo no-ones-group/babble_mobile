@@ -1,9 +1,11 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:babble_mobile/Onboarding/user_details_form.dart';
 import 'package:babble_mobile/api/authentication_api.dart';
 import 'package:babble_mobile/api/user_api.dart';
 import 'package:babble_mobile/constants/root_constants.dart';
-import 'package:babble_mobile/ui/root.dart';
-import 'package:babble_mobile/ui/root_controller.dart';
+import 'package:babble_mobile/new_ui/root/root.dart';
+import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -103,7 +105,7 @@ class NewOTPScreen extends StatelessWidget {
                                 if (await UserAPI()
                                     .isUserAlreadyRegistered(phoneNumber)) {
                                   nav.push(MaterialPageRoute(
-                                      builder: ((context) => RootAndroid())));
+                                      builder: ((context) => Root())));
                                 } else {
                                   nav.push(MaterialPageRoute(
                                       builder: ((context) =>

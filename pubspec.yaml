@@ -45,6 +45,9 @@ dependencies:
   hexcolor:
   flutter_contacts:
   file_picker:
+  video_player:
+  encrypt:
+  get_storage:
 
 
   # The following adds the Cupertino Icons font to your application.
