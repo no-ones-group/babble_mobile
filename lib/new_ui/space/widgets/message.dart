@@ -10,6 +10,7 @@ import 'package:babble_mobile/new_ui/space/widgets/utils/hero_dialog_route.dart'
 import 'package:babble_mobile/new_ui/space/widgets/utils/message_controller.dart';
 import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -21,7 +22,6 @@ import 'package:video_player/video_player.dart';
 class Message extends StatelessWidget {
   final MessageModel messageModel;
   final Space space;
-  final Color _color = Colors.red;
   final messageController = Get.find<MessageController>();
   final RootController _rootController = Get.find<RootController>();
   late final String decryptedContent;
@@ -57,14 +57,16 @@ class Message extends StatelessWidget {
           margin: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
           padding: const EdgeInsets.all(10),
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.7,
+            maxWidth: kIsWeb
+                ? MediaQuery.of(context).size.width * 0.4
+                : MediaQuery.of(context).size.width * 0.7,
             // minWidth: MediaQuery.of(context).size.width * 0.4,
           ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             color: messageController.isReplying.value &&
                     messageController.isReplyingTo.value == messageModel.id
-                ? _color
+                ? Colors.red
                 : isLoggedInUser
                     ? RootConstants.userMessageColor
                     : RootConstants.notUserMessageColor,
