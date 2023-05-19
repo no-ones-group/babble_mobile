@@ -26,14 +26,11 @@ class Message extends StatelessWidget {
   final RootController _rootController = Get.find<RootController>();
   late final String decryptedContent;
 
-  TextStyle get messageHeader {
-    TextStyle style = GoogleFonts.poppins(
-      fontSize: 16,
-      fontWeight: FontWeight.w600,
-      color: Colors.white,
-    );
-    return style;
-  }
+  TextStyle get messageHeader => GoogleFonts.poppins(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      );
 
   Message({
     super.key,
@@ -181,6 +178,11 @@ class Content extends StatelessWidget {
   final List<InlineSpan> spans = [];
   late final File file;
 
+  TextStyle get messageContent => GoogleFonts.poppins(
+        fontSize: 16,
+        color: Colors.white,
+      );
+
   Future<void> prepareContent() async {
     if (messageType != MessageType.text) {
       file = File("cache_file.cache");
@@ -204,9 +206,10 @@ class Content extends StatelessWidget {
               },
               child: Text(
                 '$e ',
-                style: const TextStyle(
-                  overflow: TextOverflow.clip,
-                  color: Colors.blue,
+                style: GoogleFonts.poppins(
+                  fontStyle: FontStyle.italic,
+                  fontSize: 16,
+                  color: Colors.red,
                   decoration: TextDecoration.underline,
                   decorationThickness: 1,
                 ),
@@ -216,9 +219,7 @@ class Content extends StatelessWidget {
         } else {
           spans.add(TextSpan(
             text: '$e ',
-            style: const TextStyle(
-              overflow: TextOverflow.clip,
-            ),
+            style: messageContent,
           ));
         }
       });
