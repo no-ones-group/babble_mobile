@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/message_model.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/models/user.dart';
@@ -24,6 +25,16 @@ class Message extends StatelessWidget {
   final messageController = Get.find<MessageController>();
   final RootController _rootController = Get.find<RootController>();
   late final String decryptedContent;
+
+  TextStyle get messageHeader {
+    TextStyle style = GoogleFonts.poppins(
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+      color: Colors.white,
+    );
+    return style;
+  }
+
   Message({
     super.key,
     required this.messageModel,
@@ -58,8 +69,8 @@ class Message extends StatelessWidget {
                     messageController.isReplyingTo.value == messageModel.id
                 ? _color
                 : isLoggedInUser
-                    ? const Color.fromRGBO(19, 196, 163, 1)
-                    : const Color.fromRGBO(76, 96, 133, 1),
+                    ? RootConstants.userMessageColor
+                    : RootConstants.notUserMessageColor,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -74,12 +85,12 @@ class Message extends StatelessWidget {
                       if (snapshot.hasData && snapshot.data != null) {
                         return Text(
                           snapshot.data!.get(User.displayNameField),
-                          style: GoogleFonts.poppins(),
+                          style: messageHeader,
                         );
                       }
                       return Text(
                         'loading...',
-                        style: GoogleFonts.poppins(),
+                        style: messageHeader,
                       );
                     },
                   ),
@@ -218,6 +229,7 @@ class Content extends StatelessWidget {
   Widget build(BuildContext context) {
     prepareContent();
     return Container(
+      padding: const EdgeInsets.all(5),
       child: messageType == MessageType.text
           ? RichText(
               text: TextSpan(
@@ -228,13 +240,14 @@ class Content extends StatelessWidget {
               ? GestureDetector(
                   onTap: () {
                     Navigator.push(
-                        context,
-                        HeroDialogRoute(
-                          builder: (context) => ContentDetails(
-                            content: content,
-                            messageType: MessageType.image,
-                          ),
-                        ));
+                      context,
+                      HeroDialogRoute(
+                        builder: (context) => ContentDetails(
+                          content: content,
+                          messageType: MessageType.image,
+                        ),
+                      ),
+                    );
                   },
                   child: Hero(
                     tag: MessageType.image,
