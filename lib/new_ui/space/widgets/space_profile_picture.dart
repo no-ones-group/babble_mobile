@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:babble_mobile/models/space.dart';
+import 'package:babble_mobile/new_ui/space/space_profile_space.dart';
 import 'package:flutter/material.dart';
 
 class SpaceProfilePic extends StatelessWidget {
@@ -11,8 +12,8 @@ class SpaceProfilePic extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => SpaceProfilePic(
-                space: space,
+          builder: (context) => SpaceProfileSpace(
+                space,
               ))),
       child: Container(
         decoration: const BoxDecoration(

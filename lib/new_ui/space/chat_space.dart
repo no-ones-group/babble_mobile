@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/message_model.dart';
 import 'package:babble_mobile/models/space.dart';
+import 'package:babble_mobile/new_ui/space/space_profile_space.dart';
 import 'package:babble_mobile/new_ui/space/user_space.dart';
 import 'package:babble_mobile/new_ui/space/widgets/message.dart';
 import 'package:babble_mobile/new_ui/space/widgets/space_profile_picture.dart';
@@ -285,13 +286,7 @@ class ChatSpace extends StatelessWidget {
                 ),
               ),
             ),
-            kIsWeb
-                ? Container(
-                    padding: const EdgeInsets.all(10),
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width * 0.3,
-                  )
-                : const SizedBox(),
+            kIsWeb ? SpaceProfileSpace(space) : const SizedBox(),
           ],
         ),
       ),

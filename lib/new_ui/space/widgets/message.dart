@@ -50,89 +50,96 @@ class Message extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isLoggedInUser = messageModel.by.id == _rootController.user.id;
-    return Align(
-      alignment: isLoggedInUser ? Alignment.topRight : Alignment.topLeft,
-      child: Obx(
-        () => Container(
-          margin: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-          padding: const EdgeInsets.all(10),
-          constraints: BoxConstraints(
-            maxWidth: kIsWeb
-                ? MediaQuery.of(context).size.width * 0.4
-                : MediaQuery.of(context).size.width * 0.7,
-            // minWidth: MediaQuery.of(context).size.width * 0.4,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: messageController.isReplying.value &&
-                    messageController.isReplyingTo.value == messageModel.id
-                ? Colors.red
-                : isLoggedInUser
-                    ? RootConstants.userMessageColor
-                    : RootConstants.notUserMessageColor,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  FutureBuilder<DocumentSnapshot>(
-                    future: messageModel.by.get(),
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData && snapshot.data != null) {
+    return Flexible(
+      child: Align(
+        alignment: isLoggedInUser ? Alignment.topRight : Alignment.topLeft,
+        child: Obx(
+          () => Container(
+            margin: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+            padding: const EdgeInsets.all(10),
+            constraints: BoxConstraints(
+              maxWidth: kIsWeb
+                  ? MediaQuery.of(context).size.width * 0.4
+                  : MediaQuery.of(context).size.width * 0.7,
+              // minWidth: MediaQuery.of(context).size.width * 0.4,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: messageController.isReplying.value &&
+                      messageController.isReplyingTo.value == messageModel.id
+                  ? Colors.red
+                  : isLoggedInUser
+                      ? RootConstants.userMessageColor
+                      : RootConstants.notUserMessageColor,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    FutureBuilder<DocumentSnapshot>(
+                      future: messageModel.by.get(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData && snapshot.data != null) {
+                          return Text(
+                            snapshot.data!.get(User.displayNameField),
+                            style: messageHeader,
+                          );
+                        }
                         return Text(
-                          snapshot.data!.get(User.displayNameField),
+                          'loading...',
                           style: messageHeader,
                         );
-                      }
-                      return Text(
-                        'loading...',
-                        style: messageHeader,
-                      );
-                    },
+                      },
+                    ),
+                    PopupMenuButton(
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context) {
+                        return [
+                          PopupMenuItem(
+                            child: const Text('Reply'),
+                            onTap: () {
+                              messageController.isReplying.value = true;
+                              messageController.isReplyingTo.value =
+                                  messageModel.id;
+                            },
+                          ),
+                          PopupMenuItem(
+                            child: const Text('Delete'),
+                            onTap: () async {
+                              await deleteMessage();
+                            },
+                          ),
+                        ];
+                      },
+                      child: const Icon(Icons.settings),
+                    ),
+                  ],
+                ),
+                messageModel.replyingTo != null
+                    ? ReplyingTo(messageModel.replyingTo!, space)
+                    : const SizedBox(),
+                Align(
+                  alignment: isLoggedInUser
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  child: Content(
+                    messageType: messageModel.messageType,
+                    content: decryptedContent,
                   ),
-                  PopupMenuButton(
-                    padding: EdgeInsets.zero,
-                    itemBuilder: (context) {
-                      return [
-                        PopupMenuItem(
-                          child: const Text('Reply'),
-                          onTap: () {
-                            messageController.isReplying.value = true;
-                            messageController.isReplyingTo.value =
-                                messageModel.id;
-                          },
-                        ),
-                        PopupMenuItem(
-                          child: const Text('Delete'),
-                          onTap: () async {
-                            await deleteMessage();
-                          },
-                        ),
-                      ];
-                    },
-                    child: const Icon(Icons.settings),
-                  ),
-                ],
-              ),
-              messageModel.replyingTo != null
-                  ? ReplyingTo(messageModel.replyingTo!, space)
-                  : const SizedBox(),
-              Content(
-                messageType: messageModel.messageType,
-                content: decryptedContent,
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                      '${messageModel.sentTime.toDate().hour}:${messageModel.sentTime.toDate().minute} ${messageModel.sentTime.toDate().hour < 12 ? 'AM' : 'PM'}'),
-                ],
-              )
-            ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                        '${messageModel.sentTime.toDate().hour}:${messageModel.sentTime.toDate().minute} ${messageModel.sentTime.toDate().hour < 12 ? 'AM' : 'PM'}'),
+                  ],
+                )
+              ],
+            ),
           ),
         ),
       ),
@@ -231,54 +238,56 @@ class Content extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     prepareContent();
-    return Container(
-      padding: const EdgeInsets.all(5),
-      child: messageType == MessageType.text
-          ? RichText(
-              text: TextSpan(
-                children: spans,
-              ),
-            )
-          : messageType == MessageType.image
-              ? GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      HeroDialogRoute(
-                        builder: (context) => ContentDetails(
-                          content: content,
-                          messageType: MessageType.image,
+    return Flexible(
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        child: messageType == MessageType.text
+            ? RichText(
+                text: TextSpan(
+                  children: spans,
+                ),
+              )
+            : messageType == MessageType.image
+                ? GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        HeroDialogRoute(
+                          builder: (context) => ContentDetails(
+                            content: content,
+                            messageType: MessageType.image,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  child: Hero(
-                    tag: MessageType.image,
-                    createRectTween: (begin, end) {
-                      return CustomRectTween(begin: begin!, end: end!);
+                      );
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
+                    child: Hero(
+                      tag: MessageType.image,
+                      createRectTween: (begin, end) {
+                        return CustomRectTween(begin: begin!, end: end!);
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Image.memory(base64.decode(content)),
                       ),
-                      child: Image.memory(base64.decode(content)),
                     ),
-                  ),
-                )
-              : messageType == MessageType.video
-                  ? Container(
-                      height: 200,
-                      width: 250,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
+                  )
+                : messageType == MessageType.video
+                    ? Container(
+                        height: 200,
+                        width: 250,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: VideoPlayer(
+                          VideoPlayerController.file(file),
+                        ),
+                      )
+                    : const SizedBox(
+                        child: Text('Un-Identified MessageType'),
                       ),
-                      child: VideoPlayer(
-                        VideoPlayerController.file(file),
-                      ),
-                    )
-                  : const SizedBox(
-                      child: Text('Un-Identified MessageType'),
-                    ),
+      ),
     );
   }
 }
