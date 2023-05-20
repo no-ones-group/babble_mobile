@@ -13,6 +13,8 @@ class UserAPI {
         profilePicLink: data.get(User.profilePicLinkField),
         displayName: data.get(User.displayNameField),
         fullName: data.get(User.fullNameField),
+        isOnline: data.get(User.isOnlineField),
+        isTyping: data.get(User.isTypingField),
         spaces: (data.get(User.spacesField) as List)
             .map((item) => item as DocumentReference)
             .toList(),
@@ -26,6 +28,8 @@ class UserAPI {
     _instance.collection('users').doc(user.id).set({
       User.displayNameField: user.displayName,
       User.idField: user.id,
+      User.isOnlineField: user.isOnline,
+      User.isTypingField: user.isTyping,
       User.profilePicLinkField: user.profilePicLink,
       User.spacesField: [],
       User.fullNameField: user.fullName,

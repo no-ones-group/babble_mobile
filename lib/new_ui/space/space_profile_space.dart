@@ -22,7 +22,6 @@ class SpaceProfileSpace extends StatelessWidget {
             double radius = MediaQuery.of(context).size.width * 0.25;
             return Container(
               color: Colors.white10,
-              width: 376,
               height: MediaQuery.of(context).size.height,
               child: Padding(
                 padding: const EdgeInsets.all(0),

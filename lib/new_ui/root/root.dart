@@ -1,4 +1,3 @@
-
 import 'package:babble_mobile/constants/root_constants.dart';
 import 'package:babble_mobile/models/space.dart';
 import 'package:babble_mobile/new_ui/space/chat_space.dart';
@@ -9,10 +8,43 @@ import 'package:babble_mobile/new_ui/space/widgets/space_profile_picture.dart';
 import 'package:babble_mobile/new_ui/root/root_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
-class Root extends StatelessWidget {
-  final RootController _rootController = Get.find();
+class Root extends StatefulWidget {
   Root({super.key});
+
+  @override
+  State<Root> createState() => _RootState();
+}
+
+class _RootState extends State<Root> with WidgetsBindingObserver {
+  final RootController _rootController = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        await _rootController.onlineToggle(true);
+        await _rootController.refreshUserData();
+        break;
+      default:
+        await _rootController.onlineToggle(false);
+        await _rootController.refreshUserData();
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +144,28 @@ class Root extends StatelessWidget {
                                       : space.displayName1)
                                   : space.spaceName,
                               style: RootConstants.textStyleContent,
+                            ),
+                            subtitle: FutureBuilder(
+                              future: space.messagesCollection
+                                  .orderBy('sentTime', descending: true)
+                                  .limit(1)
+                                  .get(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState ==
+                                        ConnectionState.done &&
+                                    snapshot.data != null) {
+                                  encrypt.Key key =
+                                      encrypt.Key.fromBase64(space.key);
+                                  encrypt.IV iv =
+                                      encrypt.IV.fromBase64(space.iv);
+                                  encrypt.Encrypter decrypter =
+                                      encrypt.Encrypter(encrypt.AES(key));
+                                  return Text(decrypter.decrypt64(
+                                      snapshot.data!.docs.first.get('content'),
+                                      iv: iv));
+                                }
+                                return const Text('Send your first text');
+                              },
                             ),
                             trailing: Container(
                               height: 20,

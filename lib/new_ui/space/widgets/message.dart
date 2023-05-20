@@ -50,96 +50,89 @@ class Message extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     bool isLoggedInUser = messageModel.by.id == _rootController.user.id;
-    return Flexible(
-      child: Align(
-        alignment: isLoggedInUser ? Alignment.topRight : Alignment.topLeft,
-        child: Obx(
-          () => Container(
-            margin: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
-            padding: const EdgeInsets.all(10),
-            constraints: BoxConstraints(
-              maxWidth: kIsWeb
-                  ? MediaQuery.of(context).size.width * 0.4
-                  : MediaQuery.of(context).size.width * 0.7,
-              // minWidth: MediaQuery.of(context).size.width * 0.4,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: messageController.isReplying.value &&
-                      messageController.isReplyingTo.value == messageModel.id
-                  ? Colors.red
-                  : isLoggedInUser
-                      ? RootConstants.userMessageColor
-                      : RootConstants.notUserMessageColor,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    FutureBuilder<DocumentSnapshot>(
-                      future: messageModel.by.get(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData && snapshot.data != null) {
-                          return Text(
-                            snapshot.data!.get(User.displayNameField),
-                            style: messageHeader,
-                          );
-                        }
+    return Align(
+      alignment: isLoggedInUser ? Alignment.topRight : Alignment.topLeft,
+      child: Obx(
+        () => Container(
+          margin: const EdgeInsets.only(left: 8, right: 8, top: 4, bottom: 4),
+          padding: const EdgeInsets.all(10),
+          constraints: BoxConstraints(
+            maxWidth: kIsWeb
+                ? MediaQuery.of(context).size.width * 0.4
+                : MediaQuery.of(context).size.width * 0.7,
+            // minWidth: MediaQuery.of(context).size.width * 0.4,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: messageController.isReplying.value &&
+                    messageController.isReplyingTo.value == messageModel.id
+                ? Colors.red
+                : isLoggedInUser
+                    ? RootConstants.userMessageColor
+                    : RootConstants.notUserMessageColor,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  FutureBuilder<DocumentSnapshot>(
+                    future: messageModel.by.get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData && snapshot.data != null) {
                         return Text(
-                          'loading...',
+                          snapshot.data!.get(User.displayNameField),
                           style: messageHeader,
                         );
-                      },
-                    ),
-                    PopupMenuButton(
-                      padding: EdgeInsets.zero,
-                      itemBuilder: (context) {
-                        return [
-                          PopupMenuItem(
-                            child: const Text('Reply'),
-                            onTap: () {
-                              messageController.isReplying.value = true;
-                              messageController.isReplyingTo.value =
-                                  messageModel.id;
-                            },
-                          ),
-                          PopupMenuItem(
-                            child: const Text('Delete'),
-                            onTap: () async {
-                              await deleteMessage();
-                            },
-                          ),
-                        ];
-                      },
-                      child: const Icon(Icons.settings),
-                    ),
-                  ],
-                ),
-                messageModel.replyingTo != null
-                    ? ReplyingTo(messageModel.replyingTo!, space)
-                    : const SizedBox(),
-                Align(
-                  alignment: isLoggedInUser
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Content(
-                    messageType: messageModel.messageType,
-                    content: decryptedContent,
+                      }
+                      return Text(
+                        'loading...',
+                        style: messageHeader,
+                      );
+                    },
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                        '${messageModel.sentTime.toDate().hour}:${messageModel.sentTime.toDate().minute} ${messageModel.sentTime.toDate().hour < 12 ? 'AM' : 'PM'}'),
-                  ],
-                )
-              ],
-            ),
+                  PopupMenuButton(
+                    padding: EdgeInsets.zero,
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          child: const Text('Reply'),
+                          onTap: () {
+                            messageController.isReplying.value = true;
+                            messageController.isReplyingTo.value =
+                                messageModel.id;
+                          },
+                        ),
+                        PopupMenuItem(
+                          child: const Text('Delete'),
+                          onTap: () async {
+                            await deleteMessage();
+                          },
+                        ),
+                      ];
+                    },
+                    child: const Icon(Icons.settings),
+                  ),
+                ],
+              ),
+              messageModel.replyingTo != null
+                  ? ReplyingTo(messageModel.replyingTo!, space)
+                  : const SizedBox(),
+              Content(
+                messageType: messageModel.messageType,
+                content: decryptedContent,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                      '${messageModel.sentTime.toDate().hour}:${messageModel.sentTime.toDate().minute} ${messageModel.sentTime.toDate().hour < 12 ? 'AM' : 'PM'}'),
+                ],
+              )
+            ],
           ),
         ),
       ),

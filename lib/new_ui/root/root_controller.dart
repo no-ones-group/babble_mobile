@@ -31,6 +31,13 @@ class RootController extends GetxController {
     user = await UserAPI().getUser(loggedInUserPhoneNumber);
   }
 
+  Future onlineToggle(bool toggleValue) async {
+    await refreshUserData();
+    await userDoc.update({
+      'isOnline': toggleValue,
+    });
+  }
+
   @override
   void onInit() async {
     var pref = await SharedPreferences.getInstance();
@@ -38,7 +45,13 @@ class RootController extends GetxController {
       loggedInUserPhoneNumber = pref.getString('user_id')!;
       log(pref.getString('user_id')!);
     }
-    await refreshUserData();
+    await onlineToggle(true);
     super.onInit();
+  }
+
+  @override
+  void onClose() async {
+    await onlineToggle(false);
+    super.onClose();
   }
 }

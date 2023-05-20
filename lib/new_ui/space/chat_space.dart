@@ -29,6 +29,22 @@ class ChatSpace extends StatelessWidget {
   final _textEditingController = TextEditingController();
   ChatSpace(this.space, {super.key});
 
+  List<PopupMenuItem> populateMenuItems(BuildContext context) {
+    List<PopupMenuItem> items = [];
+    if (space.spaceName != '') {
+      items.add(PopupMenuItem(
+        child: const Text('Add user'),
+        onTap: () => Future(
+          () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => UserSpace(true, null, space)),
+          ),
+        ),
+      ));
+    }
+
+    return items;
+  }
+
   Future sendMessage(MessageType type) async {
     DocumentReference? replyingToRef;
     String id = const Uuid().v1();
@@ -80,37 +96,60 @@ class ChatSpace extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 75,
         actions: [
           PopupMenuButton(
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                child: const Text('Add user'),
-                onTap: () => Future(
-                  () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => UserSpace(true, null, space)),
-                  ),
-                ),
-              ),
-            ],
+            itemBuilder: (context) => populateMenuItems(context),
           ),
         ],
-        title: Row(
+        title: Column(
           children: [
-            SpaceProfilePic(space: space),
-            Container(
-              padding: const EdgeInsets.all(5),
-              child: Text(
-                space.spaceName == ''
-                    ? (_rootController.user.displayName == space.displayName1
-                        ? space.displayName2
-                        : space.displayName1)
-                    : space.spaceName,
-                style: RootConstants.textStyleSubHeader,
-                maxLines: 1,
-                softWrap: true,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SpaceProfilePic(space: space),
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  child: Text(
+                    space.spaceName == ''
+                        ? (_rootController.user.displayName ==
+                                space.displayName1
+                            ? space.displayName2
+                            : space.displayName1)
+                        : space.spaceName,
+                    style: const TextStyle(
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    maxLines: 1,
+                    softWrap: true,
+                  ),
+                ),
+              ],
             ),
+            _rootController.user.isOnline
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        height: 8,
+                        width: 8,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(
+                        width: 2,
+                      ),
+                      Text(
+                        'Online',
+                        style: RootConstants.textStyleContent,
+                      ),
+                    ],
+                  )
+                : const SizedBox(),
           ],
         ),
       ),

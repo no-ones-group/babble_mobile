@@ -12,9 +12,12 @@ class SpaceProfilePic extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => SpaceProfileSpace(
-                space,
-              ))),
+        builder: (context) => Scaffold(
+          body: SpaceProfileSpace(
+            space,
+          ),
+        ),
+      )),
       child: Container(
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
